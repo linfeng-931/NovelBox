@@ -30,23 +30,24 @@ export const handleCreateUserTable = async (userData) => {
 };
 
 //login
-export const handleLogin = async (loginData) => {
+export const handleLogin = async (loginData, setUser) => {
     const { email, password } = loginData;
-
+    
     try {
         const response = await fetch(`${host}/api/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({email, password})
+            body: JSON.stringify({email, password}),
+            credentials: 'include'
         });
 
         const data = await response.json();
 
         if (data.success) {
             alert(`登入成功！歡迎回來，${data.user.name}！`);
-            console.log("登入的使用者資訊:", data.user);
+            setUser(data.user);
         } else {
             alert("登入失敗：" + data.error);
         }
@@ -54,3 +55,17 @@ export const handleLogin = async (loginData) => {
         alert("連結後端失敗：" + error.message);
     }
 };
+
+//logout
+export const handleLogout = async (setUser) => {
+    try{
+        await fetch(`${host}/api/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        setUser(null);
+        alert("已成功登出！");
+    } catch (err){
+        alert("登出失敗："+err.message);
+    }
+}
