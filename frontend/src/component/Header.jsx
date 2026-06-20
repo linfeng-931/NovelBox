@@ -5,8 +5,9 @@ import novelBoxLogo from '../assets/image/novelBoxLogo.png'
 import CenterUnderline from '@/components/fancy/text/underline-center'
 import { Search } from 'lucide-react'
 
-export default function Header() {
+export default function Header({ page }) {
     const [inputValue, changeInputValue] = useState("");
+
     return (
         <div style={{
             width: '100%',
@@ -14,7 +15,7 @@ export default function Header() {
             backgroundColor: 'rgba(255, 255, 255, 0.5)',
             boxShadow: '0px 4px 4px 0px rgba(0, 0, 0, 0.05)',
             display: 'flex',
-            justifyContent: 'space-between', 
+            justifyContent: 'space-between',
             alignItems: 'center',
             paddingLeft: '5rem',
             paddingRight: '5rem',
@@ -29,29 +30,54 @@ export default function Header() {
                 <h1 className='title0'>NOVEL BOX</h1>
             </div>
 
-            <nav style={{ display: 'flex', gap: '20px', padding: '10px', alignItems:'center', gap:'3rem'}}>
-                <Link to="/" className="content1" style={{ textDecoration: 'none'}}>
-                    <CenterUnderline>首頁</CenterUnderline>
-                </Link>
-                <Link to="/novels" className="content1" style={{ textDecoration: 'none' }}>
-                    <CenterUnderline>書庫</CenterUnderline>
-                </Link>
-                <Link to="/profile" className="content1" style={{ textDecoration: 'none' }}>
-                    <CenterUnderline>書架</CenterUnderline>
-                </Link>
-                <div style={{display: 'flex', backgroundColor:'rgba(0, 0, 0, 0.1)', padding: 8, borderRadius: 20, width: '15rem', gap: 10, alignItems:'center'}}>
-                    <Search size={18}/>
+            <nav style={{ display: 'flex', gap: '20px', padding: '10px', alignItems: 'center', gap: '3rem' }}>
+                {page === 1 ?
+                    <div style={{ fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                        首頁
+                    </div>
+                    :
+                    <Link to="/" className="fontBtn" style={{ textDecoration: 'none' }}>
+                        <CenterUnderline>首頁</CenterUnderline>
+                    </Link>
+                }
+                {page === 2 ?
+                    <div style={{ fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                        書庫
+                    </div>
+                    :
+                    <Link to="/novels" className="fontBtn" style={{ textDecoration: 'none' }}>
+                        <CenterUnderline>書庫</CenterUnderline>
+                    </Link>
+                }
+                {page === 3 ?
+                    <div style={{ fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                        書架
+                    </div>
+                    :
+                    <Link to="/bookshelf" className="fontBtn" style={{ textDecoration: 'none' }}>
+                        <CenterUnderline>書架</CenterUnderline>
+                    </Link>
+                }
+                <div style={{ display: 'flex', backgroundColor: 'rgba(0, 0, 0, 0.1)', padding: 8, borderRadius: 20, width: '15rem', gap: 10, alignItems: 'center' }}>
+                    <Search size={18} />
                     <input
                         type='text'
                         value={inputValue}
                         onChange={(e) => changeInputValue(e.target.value)}
                         placeholder="請輸入書名或作者名"
-                        style={{fontSize: 14, backgroundColor: 'rgba(0, 0, 0, 0)', border:'none', outline: 'none'}}
+                        style={{ fontSize: 14, backgroundColor: 'rgba(0, 0, 0, 0)', border: 'none', outline: 'none' }}
                     />
                 </div>
-                <Link to="/profile" className="content1" style={{ textDecoration: 'none' }}>
-                    <CenterUnderline>登入</CenterUnderline>
-                </Link>
+                {page === 4 ?
+                    <div style={{ fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                        登入
+                    </div>
+                    :
+                    <Link to="/login" className="fontBtn" style={{ textDecoration: 'none' }}>
+                        <CenterUnderline>登入</CenterUnderline>
+                    </Link>
+                }
+
             </nav>
 
         </div>

@@ -17,10 +17,12 @@
   --weight1: 700;
   --weight2: 600;
 
+  --lightBasic: black;
+
   --font-heading: "Micro 5", sans-serif;
 
   font-family: "Noto Sans TC", sans-serif;
-  font-weight: 320;
+  font-weight: 340;
 }
 .title0{
   font-family: var(--font-heading);
@@ -30,23 +32,31 @@
 .title1{
   font-size: 24;
   font-weight: var(--weight2);
-  color: black;
+  color: var(--lightBasic);
 }
 .content1{
   font-size: 18;
-  color: black;
+  color: var(--lightBasic);
 }
 .content2{
   font-size: 14;
-  color: black;
+  color: var(--lightBasic);
 }
 .tag1{
   font-size: 18;
-  color: black;
+  color: var(--lightBasic);
   opacity: 0.5;
 }
 .tag2{
   font-size: 14;
-  color: black;
+  color: var(--lightBasic);
   opacity: 0.5;
+}
+.fontBtn{
+  font-size: 18;
+  color: var(--lightBasic);
+}
+.fontBtn:hover{
+  font-weight: 500;
+  transition: .5s;
 }
