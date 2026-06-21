@@ -2,16 +2,12 @@ import { useState } from 'react'
 import '../App.css'
 import CarouselBar from '@/component/CarouselBar';
 import Header from '@/component/Header';
-import { handleLogout } from '@/utils/linkDB';
 import mainPageImg from '../assets/image/mainPage.png'
 
-export default function HomePage({setUser}) {
+export default function HomePage({setUser, user}) {
   const [count, setCount] = useState(0);
 
-  const Logout = async (e) => {
-    handleLogout(setUser);
-  }
-  const renderTable = () => {
+  /*const renderTable = () => {
     if (dbData.length === 0) return <p>目前沒有資料</p>;
 
     const header = Object.keys(dbData[0]);
@@ -32,14 +28,13 @@ export default function HomePage({setUser}) {
         </tbody>
       </table>
     );
-  }
+  }*/
 
   return (
     <div>
-      <Header page={1}/>
+      <Header page={1} user={user}/>
       <img style={{width: '100%'}} src={mainPageImg} alt="主頁圖片"/>
       <CarouselBar/>
-      <button onClick={Logout}>登出測試鈕</button>
     </div>
   )
 }

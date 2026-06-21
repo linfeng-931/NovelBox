@@ -5,7 +5,7 @@ import novelBoxLogo from '../assets/image/novelBoxLogo.png'
 import CenterUnderline from '@/components/fancy/text/underline-center'
 import { Search } from 'lucide-react'
 
-export default function Header({ page }) {
+export default function Header({ page, user }) {
     const [inputValue, changeInputValue] = useState("");
 
     return (
@@ -68,15 +68,29 @@ export default function Header({ page }) {
                         style={{ fontSize: 14, backgroundColor: 'rgba(0, 0, 0, 0)', border: 'none', outline: 'none' }}
                     />
                 </div>
-                {page === 4 ?
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
-                        登入
-                    </div>
+                {user ?
+                    page === 4 ? (
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                            個人空間
+                        </div>)
+                        :
+                        (<Link to="/user" className="fontBtn" style={{ textDecoration: 'none' }}>
+                            <CenterUnderline>個人空間</CenterUnderline>
+                        </Link>
+                        )
                     :
-                    <Link to="/login" className="fontBtn" style={{ textDecoration: 'none' }}>
-                        <CenterUnderline>登入</CenterUnderline>
-                    </Link>
+                    page === 4 ? (
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                            登入
+                        </div>)
+                        :
+                        (<Link to="/login" className="fontBtn" style={{ textDecoration: 'none' }}>
+                            <CenterUnderline>登入</CenterUnderline>
+                        </Link>
+                        )
+
                 }
+
 
             </nav>
 

@@ -23,6 +23,7 @@
 
   font-family: "Noto Sans TC", sans-serif;
   font-weight: 340;
+  line-height: 24px;
 }
 
 * {
@@ -84,6 +85,7 @@ input{
   color: var(--lightBasic);
 }
 .fontBtn:hover{
+  cursor: pointer;
   font-weight: 500;
   transition: .5s;
 }
@@ -128,6 +130,30 @@ input{
   border: 2px solid var(--pink1);
 }
 .normalBtn:active{
+  opacity: 0.3;
+}
+
+.normalBtn2{
+  background-color: rgb(228, 228, 228);
+  height: 3rem;
+  border-radius: .4rem;
+  border: 2px solid rgb(228, 228, 228);
+}
+.disableNormalBtn2{
+  opacity: 0.5;
+  background-color: rgb(228, 228, 228);
+  height: 3rem;
+  border-radius: .4rem;
+  border: 2px solid rgb(228, 228, 228);
+}
+.normalBtn2:hover{
+  cursor: pointer;
+  transition: .2s;
+  background-color: transparent;
+  color: rgb(228, 228, 228);
+  border: 2px solid rgb(228, 228, 228);
+}
+.normalBtn2:active{
   opacity: 0.3;
 }
 

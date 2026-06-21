@@ -1,12 +1,13 @@
 import { useState } from "react"
 import { handleLogin, handleCreateUserTable } from "@/utils/linkDB";
 import Header from "@/component/Header"
-import { data } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import mainPageImg from '../assets/image/mainPage.png'
 
 import { Eye, EyeOff, CircleX, Asterisk } from 'lucide-react';
 
 export default function LoginPage({ setUser }) {
+    const navigate = useNavigate();
     const [email, setEmail] = useState(null);
     const [name, setName] = useState(null);
     const [password, setPassword] = useState(null);
@@ -24,7 +25,7 @@ export default function LoginPage({ setUser }) {
     const Login = async (e) => {
         e.preventDefault();
         const loginData = { email, password };
-        await handleLogin(loginData, setUser);
+        await handleLogin(loginData, setUser, navigate);
     };
     const SignIn = async (e) => {
         e.preventDefault();

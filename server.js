@@ -3,17 +3,20 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const app = express();
-const PORT = process.env.PORT || 3000;
 const bcrypt = require('bcryptjs');
 const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const SECRET_KEY = process.env.JWT_SECRET || 'your_super_secret_key_123';
 
 //前端讀取後端
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
     origin: 'http://localhost:5173',
-    credentials: true                
+    credentials: true
 }));
 
 //連線資訊
@@ -34,12 +37,12 @@ db.connect((err) => {
 });
 
 //token
-function generateToken(userId) { 
-    return `mock_token_for_user_${userId}`; 
+function generateToken(userId) {
+    return jwt.sign({ user_id: userId }, SECRET_KEY, { expiresIn: '24h' });
 }
 
-function verifyToken(token) { 
-    return { user: { id: token.split('_').pop() } }; 
+function verifyToken(token) {
+    return jwt.verify(token, SECRET_KEY);
 }
 
 //api接口，前端傳sql語法進來
@@ -85,10 +88,10 @@ app.post('/api/register', async (req, res) => {
 //login
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
-    const sql = `SELECT * FROM users WHERE email = '${email}';`;
+    const sql = `SELECT * FROM users WHERE email = ?;`;
 
     //驗證使用者
-    db.query(sql, (err, results) => {
+    db.query(sql, [email], (err, results) => {
         if (err) {
             return res.status(400).json({ success: false, error: err.message });
         }
@@ -105,7 +108,7 @@ app.post('/api/login', (req, res) => {
             }
 
             //紀錄登入資訊
-            const token = generateToken(user.user_id);
+            const token = generateToken(user.USER_ID);
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
@@ -114,16 +117,18 @@ app.post('/api/login', (req, res) => {
             });
 
             //return
-            res.json({
-                success: true,
-                message: "登入成功！",
-                user: {
-                    user_id: user.USER_ID,
-                    name: user.NAME,
-                    email: user.email,
-                    role: user.role
-                }
-            });
+            return (
+                res.json({
+                    success: true,
+                    message: "登入成功！",
+                    user: {
+                        user_id: user.USER_ID,
+                        name: user.NAME,
+                        email: user.email,
+                        role: user.role
+                    }
+                })
+            );
         } catch (err) {
             res.status(500).json({ success: false, error: "密碼比對出錯：" + err.message });
         }
@@ -139,12 +144,40 @@ app.post('/api/logout', (req, res) => {
 //確認使用者與是否登入
 app.get('/api/me', (req, res) => {
     const token = req.cookies.token;
-    if(!token) return res.status(401).json({ loggedIn: false });
+    if (!token) return res.status(401).json({ loggedIn: false });
 
-    try{
+    try {
         const decoded = verifyToken(token);
         return res.json({ loggedIn: true, user: decoded.user });
     } catch (err) {
         return res.status(401).json({ loggedIn: false });
+    }
+});
+
+//成為作家
+app.post('/api/writer', (req, res) => {
+    console.log("Cookie 內容:", req.cookies); // 👈 檢查這裡是不是空的
+    console.log("Token 內容:", req.cookies?.token);
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ changeRole: false });
+
+    try {
+        const decoded = verifyToken(token);
+        const userId = decoded.user_id;
+
+        if (!userId) {
+            return res.status(400).json({ changeRole: false, error: "Token 資訊無效" });
+        }
+
+        const sql = `UPDATE users SET role = 'writer'  WHERE USER_ID = ?;`;
+
+        db.query(sql, [userId], (dbErr, result) => {
+            if(dbErr){
+                return res.status(500).json({changeRole: false, error: "資料庫更新失敗"+dbErr.message});
+            }
+            return res.json({ changeRole: true, user: decoded.user });
+        });
+    } catch (err) {
+        return res.status(401).json({ changeRole: false });
     }
 });

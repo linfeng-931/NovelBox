@@ -30,7 +30,7 @@ export const handleCreateUserTable = async (userData) => {
 };
 
 //login
-export const handleLogin = async (loginData, setUser) => {
+export const handleLogin = async (loginData, setUser, navigate) => {
     const { email, password } = loginData;
     
     try {
@@ -48,6 +48,7 @@ export const handleLogin = async (loginData, setUser) => {
         if (data.success) {
             alert(`登入成功！歡迎回來，${data.user.name}！`);
             setUser(data.user);
+            navigate('/');
         } else {
             alert("登入失敗：" + data.error);
         }
@@ -57,7 +58,7 @@ export const handleLogin = async (loginData, setUser) => {
 };
 
 //logout
-export const handleLogout = async (setUser) => {
+export const handleLogout = async (setUser, navigate) => {
     try{
         await fetch(`${host}/api/logout`, {
             method: 'POST',
@@ -65,7 +66,29 @@ export const handleLogout = async (setUser) => {
         });
         setUser(null);
         alert("已成功登出！");
+        navigate('/');
     } catch (err){
         alert("登出失敗："+err.message);
+    }
+}
+
+//成為作家
+export const handleBecomeWriter = async () => {
+    try{
+        const response = await fetch(`${host}/api/writer`,{
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if(!response.ok){
+            const errorData = await response.json();
+            throw new Error(errorData.error || `伺服器請求失敗(狀態碼: ${response.status})`);
+        }
+        alert("已成為NovelBox創作者！");
+    } catch(err){
+        alert("操作失敗："+err.message);
     }
 }
