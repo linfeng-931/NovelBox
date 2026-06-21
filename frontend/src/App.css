@@ -24,39 +24,134 @@
   font-family: "Noto Sans TC", sans-serif;
   font-weight: 340;
 }
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+button{
+  border: none;
+  background-color: transparent;
+}
+input{
+  border: none;
+  outline: none;
+}
+
 .title0{
   font-family: var(--font-heading);
   color:var(--pink1);
   font-size: 36px;
 }
 .title1{
-  font-size: 24;
+  font-size: 24px;
+  font-weight: var(--weight2);
+  color: var(--lightBasic);
+}
+.title2{
+  font-size: 14px;
   font-weight: var(--weight2);
   color: var(--lightBasic);
 }
 .content1{
-  font-size: 18;
+  font-size: 14px;
   color: var(--lightBasic);
 }
 .content2{
-  font-size: 14;
+  font-size: 14px;
   color: var(--lightBasic);
 }
 .tag1{
-  font-size: 18;
+  font-size: 14px;
   color: var(--lightBasic);
   opacity: 0.5;
 }
 .tag2{
-  font-size: 14;
+  font-size: 14px;
   color: var(--lightBasic);
   opacity: 0.5;
 }
+.errorMessage{
+  font-size: 14px;
+  color: red;
+}
+
+/*-------Button-------*/
 .fontBtn{
-  font-size: 18;
+  font-size: 14px;
   color: var(--lightBasic);
 }
 .fontBtn:hover{
   font-weight: 500;
   transition: .5s;
+}
+.fontBtn:active{
+  opacity: .4;
+}
+
+.smallfontBtn{
+  font-size: 14px;
+  height: 18px;
+  color: var(--pink1);
+}
+.smallfontBtn:hover{
+  cursor: pointer;
+  font-weight: 500;
+  transition: .5s;
+}
+.smallfontBtn:active{
+  opacity: .4;
+}
+
+.normalBtn{
+  background-color: var(--pink1);
+  color: white;
+  height: 3rem;
+  border-radius: .4rem;
+  border: 2px solid var(--pink1);
+}
+.disableNormalBtn{
+  opacity: 0.5;
+  background-color: var(--pink1);
+  color: white;
+  height: 3rem;
+  border-radius: .4rem;
+  border: 2px solid var(--pink1);
+}
+.normalBtn:hover{
+  cursor: pointer;
+  transition: .2s;
+  background-color: transparent;
+  color: var(--pink1);
+  border: 2px solid var(--pink1);
+}
+.normalBtn:active{
+  opacity: 0.3;
+}
+
+/*-------Input-------*/
+.frameInput{
+  height: 3rem;
+  border-bottom: 1px solid var(--lightBasic);
+}
+.frameInput::placeholder{
+  opacity: .5;
+}
+.frameInput:focus{
+  transition: .1s;
+  border-bottom: 2px solid var(--lightBasic);
+}
+
+.frameInputError{
+  height: 3rem;
+  border-bottom: 1px solid red;
+}
+.frameInputError::placeholder{
+  opacity: .5;
+}
+.frameInputError:focus{
+  transition: .1s;
+  border-bottom: 2px solid red;
 }

@@ -32,7 +32,7 @@ export default function Header({ page }) {
 
             <nav style={{ display: 'flex', gap: '20px', padding: '10px', alignItems: 'center', gap: '3rem' }}>
                 {page === 1 ?
-                    <div style={{ fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
                         首頁
                     </div>
                     :
@@ -41,7 +41,7 @@ export default function Header({ page }) {
                     </Link>
                 }
                 {page === 2 ?
-                    <div style={{ fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
                         書庫
                     </div>
                     :
@@ -50,7 +50,7 @@ export default function Header({ page }) {
                     </Link>
                 }
                 {page === 3 ?
-                    <div style={{ fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
                         書架
                     </div>
                     :
@@ -69,7 +69,7 @@ export default function Header({ page }) {
                     />
                 </div>
                 {page === 4 ?
-                    <div style={{ fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
                         登入
                     </div>
                     :

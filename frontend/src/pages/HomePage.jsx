@@ -3,6 +3,7 @@ import '../App.css'
 import CarouselBar from '@/component/CarouselBar';
 import Header from '@/component/Header';
 import { handleLogout } from '@/utils/linkDB';
+import mainPageImg from '../assets/image/mainPage.png'
 
 export default function HomePage({setUser}) {
   const [count, setCount] = useState(0);
@@ -34,10 +35,11 @@ export default function HomePage({setUser}) {
   }
 
   return (
-    <>
+    <div>
       <Header page={1}/>
+      <img style={{width: '100%'}} src={mainPageImg} alt="主頁圖片"/>
       <CarouselBar/>
       <button onClick={Logout}>登出測試鈕</button>
-    </>
+    </div>
   )
 }
