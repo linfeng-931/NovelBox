@@ -82,11 +82,12 @@ input{
 /*-------Button-------*/
 .fontBtn{
   font-size: 14px;
+  opacity: 0.6;
   color: var(--lightBasic);
 }
 .fontBtn:hover{
   cursor: pointer;
-  font-weight: 500;
+  opacity: 1;
   transition: .5s;
 }
 .fontBtn:active{
@@ -134,6 +135,8 @@ input{
 }
 
 .normalBtn2{
+  font-size: 14px;
+  color: var(--lightBasic);
   background-color: rgb(228, 228, 228);
   height: 3rem;
   border-radius: .4rem;
@@ -180,4 +183,11 @@ input{
 .frameInputError:focus{
   transition: .1s;
   border-bottom: 2px solid red;
+}
+
+.checkBox{
+  accent-color: var(--pink1);
+  width: '24px'; 
+  height: '24px';
+  cursor: 'pointer';
 }

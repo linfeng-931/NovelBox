@@ -7,7 +7,7 @@ import { Search } from 'lucide-react'
 
 export default function Header({ page, user }) {
     const [inputValue, changeInputValue] = useState("");
-
+    console.log(user);
     return (
         <div style={{
             width: '100%',
@@ -49,15 +49,18 @@ export default function Header({ page, user }) {
                         <CenterUnderline>書庫</CenterUnderline>
                     </Link>
                 }
-                {page === 3 ?
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
-                        書架
-                    </div>
-                    :
-                    <Link to="/bookshelf" className="fontBtn" style={{ textDecoration: 'none' }}>
-                        <CenterUnderline>書架</CenterUnderline>
-                    </Link>
+                {user.role === "writer" &&
+                    (page === 3 ?
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
+                            創作中心
+                        </div>
+                        :
+                        <Link to="/creator" className="fontBtn" style={{ textDecoration: 'none' }}>
+                            <CenterUnderline>創作中心</CenterUnderline>
+                        </Link>
+                    )
                 }
+                
                 <div style={{ display: 'flex', backgroundColor: 'rgba(0, 0, 0, 0.1)', padding: 8, borderRadius: 20, width: '15rem', gap: 10, alignItems: 'center' }}>
                     <Search size={18} />
                     <input

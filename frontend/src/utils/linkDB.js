@@ -92,3 +92,71 @@ export const handleBecomeWriter = async () => {
         alert("操作失敗："+err.message);
     }
 }
+
+/* ---------- 存取資料 ---------- */
+
+//存取使用者資料
+export const handleGetUserData = async (setUser) => {    
+    try {
+        const response = await fetch(`${host}/api/getUserData`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setUser(data.user);
+        } else {
+            alert("取得資料失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+/* ----------- 創作空間 ----------- */
+export const handleCreateNovelTable = async (novelData) => {
+    const { name, tag, authId } = novelData;
+
+    try {
+        const response = await fetch(`${host}/api/createBook`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({name, tag, authId})
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`新作品${name}建立成功！`);
+            console.log("資料庫回傳結果：", data.data);
+        } else {
+            alert("建立作品失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//存取Tag資料
+export const handleGetTags = async (setTag) => {    
+    try {
+        const response = await fetch(`${host}/api/getTag`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setTag(data.tags);
+        } else {
+            alert("取得資料失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};

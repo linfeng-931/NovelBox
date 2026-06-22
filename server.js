@@ -125,7 +125,10 @@ app.post('/api/login', (req, res) => {
                         user_id: user.USER_ID,
                         name: user.NAME,
                         email: user.email,
-                        role: user.role
+                        role: user.role,
+                        reader_exp: user.READER_EXP,
+                        writer_exp: user.writer_exp,
+                        introduction: user.introduction
                     }
                 })
             );
@@ -154,10 +157,51 @@ app.get('/api/me', (req, res) => {
     }
 });
 
+//存取使用者個人資料
+app.get('/api/getUserData', (req, res) => {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ success: false });
+    try {
+        const decoded = verifyToken(token);
+        const userId = decoded.user_id;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, error: "Token 資訊無效" });
+        }
+
+        const sql = `SELECT * FROM users WHERE USER_ID = ?;`;
+
+        db.query(sql, [userId], (dbErr, results) => {
+            if (dbErr) {
+                return res.status(500).json({ success: false, error: "使用者資料存取失敗" + dbErr.message });
+            }
+            if (!results || results.length === 0) {
+                return res.status(404).json({ success: false, error: "找不到該使用者資料" });
+            }
+            const user = results[0];
+            return (
+                res.json({
+                    success: true,
+                    message: "登入成功！",
+                    user: {
+                        user_id: user.USER_ID,
+                        name: user.NAME,
+                        email: user.email,
+                        role: user.role,
+                        reader_exp: user.READER_EXP,
+                        writer_exp: user.writer_exp,
+                        introduction: user.introduction
+                    }
+                })
+            );
+        });
+    } catch (err) {
+        return res.status(401).json({ success: false, error: "Token 驗證失敗" });
+    }
+});
+
 //成為作家
 app.post('/api/writer', (req, res) => {
-    console.log("Cookie 內容:", req.cookies); // 👈 檢查這裡是不是空的
-    console.log("Token 內容:", req.cookies?.token);
     const token = req.cookies.token;
     if (!token) return res.status(401).json({ changeRole: false });
 
@@ -172,12 +216,123 @@ app.post('/api/writer', (req, res) => {
         const sql = `UPDATE users SET role = 'writer'  WHERE USER_ID = ?;`;
 
         db.query(sql, [userId], (dbErr, result) => {
-            if(dbErr){
-                return res.status(500).json({changeRole: false, error: "資料庫更新失敗"+dbErr.message});
+            if (dbErr) {
+                return res.status(500).json({ changeRole: false, error: "資料庫更新失敗" + dbErr.message });
             }
             return res.json({ changeRole: true, user: decoded.user });
         });
     } catch (err) {
         return res.status(401).json({ changeRole: false });
+    }
+});
+
+/* ----------- 創作空間 ----------- */
+//創建小說資料
+app.post('/api/createBook', async (req, res) => {
+    const { name, tag, authId } = req.body;
+
+    try {
+        const sql = `
+            INSERT INTO novels (name, view_count, author_id)
+            VALUES (?, 0, ?);
+        `;
+        const sqlInsertNovelTags = `INSERT INTO novel_tags (novel_id, tag_id) VALUES ?;`;
+        const sqlFindTagIds = `SELECT id FROM tags WHERE name IN (?);`;
+
+        db.query(sql, [name, authId], (err, results) => {
+            if (err) {
+                return res.status(400).json({ success: false, error: err.message });
+            }
+
+            const novelId = results.insertId;
+            db.query(sqlFindTagIds, [tag], (findErr, tagRows) => {
+                if (findErr) {
+                    return res.status(500).json({ success: false, error: "查詢標籤 ID 失敗: " + findErr.message });
+                }
+                if (tagRows.length === 0) {
+                    return res.json({ success: true, message: "小說建立成功，但找不到對應的標籤 ID", novelId });
+                }
+                const novelTagValues = tagRows.map(row => [novelId, row.id]);
+
+                db.query(sqlInsertNovelTags, [novelTagValues], (insertErr) => {
+                    if (insertErr) {
+                        return res.status(500).json({ success: false, error: "綁定小說標籤失敗: " + insertErr.message });
+                    }
+
+                    return res.json({ success: true, message: "小說與標籤成功綁定！", novelId });
+                });
+            });
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+})
+
+//存取小說資料
+app.get('/api/getNovel', (req, res) => {
+    const { novelId } = req.body;
+
+    try {
+        const sql = `
+            SELECT n.*, GROUP_CONCAT(t.name) AS tags
+            FROM novels n
+            LEFT JOIN novel_tags nt ON n.id = nt.novel_id
+            LEFT JOIN tags t ON nt.tag_id = t.id
+            WHERE n.id = ?
+            GROUP BY n.id;
+        `;
+        db.query(sql, [novelId], (dbErr, results) => {
+            if (dbErr) {
+                return res.status(500).json({ success: false, error: "小說資料存取失敗" + dbErr.message });
+            }
+            if (results.length === 0) return res.status(404).json({ success: false, error: "找不到小說" });
+
+            const novel = results[0];
+            const tagArray = novel.TAGS ? novel.TAGS.split(',') : [];
+
+            return (
+                res.json({
+                    success: true,
+                    novel: {
+                        novel_id: novel.ID,
+                        name: novel.NAME,
+                        auth: novel.AUTHOR_ID,
+                        tag: tagArray,
+                        view_count: novel.VIEW_COUNT
+                    }
+                })
+            );
+        });
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(401).json({ success: false, error: err.message });
+    }
+});
+
+//存取Tag資料
+app.get('/api/getTag', (req, res) => {
+    try {
+        const sql = `
+            SELECT *
+            FROM tags;
+        `;
+        db.query(sql, (dbErr, results) => {
+            if (dbErr) {
+                return res.status(500).json({ success: false, error: "Tag存取失敗" + dbErr.message });
+            }
+            if (!results || results.length === 0) return res.status(404).json({ success: false, error: "找不到Tag" });
+
+            const tagArray = results.map(row => row.name);
+
+            return (
+                res.json({
+                    success: true,
+                    tags: tagArray,
+                })
+            );
+        });
+
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
     }
 });

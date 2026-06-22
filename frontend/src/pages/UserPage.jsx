@@ -129,7 +129,12 @@ export default function UserPage({ setUser, user }) {
                         <div
                             style={{ display: 'flex', gap: 5 }}
                         >
-                            <input type="checkbox" id="privacy" onClick={() => setAgreed(!agreed)} />
+                            <input 
+                                type="checkbox" 
+                                id="privacy" 
+                                onClick={() => setAgreed(!agreed)} 
+                                className='checkBox'
+                            />
                             <label htmlFor="agreement">
                                 <div style={{ display: 'flex', gap: 2 }}>
                                     <p className="content1">我已詳細閱讀並同意上述</p>
