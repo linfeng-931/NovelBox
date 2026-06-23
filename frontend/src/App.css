@@ -100,6 +100,20 @@ textarea{
   opacity: .4;
 }
 
+.fontBtn1{
+  font-size: 14px;
+  opacity: 0.6;
+  color: var(--pink1);
+}
+.fontBtn1:hover{
+  cursor: pointer;
+  opacity: 1;
+  transition: .5s;
+}
+.fontBtn1:active{
+  opacity: .4;
+}
+
 .smallfontBtn{
   font-size: 14px;
   height: 18px;

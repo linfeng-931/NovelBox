@@ -296,3 +296,26 @@ export const handleUpdateChapterViewCount = async (chapterId) => {
         alert("連結後端失敗：" + error.message);
     }
 };
+
+//更新小說
+export const handleUpdateBookSetting = async (data) => {
+    try {
+        const response = await fetch(`${host}/api/updateBookSetting`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify( data )
+        });
+
+        const resData = await response.json();
+
+        if (resData.success) {
+            alert(`小說更新成功！`);
+        } else {
+            alert("小說更新失敗：" + resData.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};

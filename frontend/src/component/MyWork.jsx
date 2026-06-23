@@ -12,6 +12,14 @@ export default function MyWork({ user, tags, currentBook, setCurrentBook, setCha
         setPage(2);
         setCurrentBook(book);
     };
+    useEffect(() => {
+        if (currentBook && books.length > 0) {
+            const updatedBook = books.find(b => b.novel_id === currentBook.novel_id);
+            if (updatedBook) {
+                setCurrentBook(updatedBook);
+            }
+        }
+    }, [books]);
 
     useEffect(() => {
         handleGetBooksByAuth(setBooks, user.user_id).catch(err => console.log("撈取作品失敗：", err));
@@ -33,7 +41,7 @@ export default function MyWork({ user, tags, currentBook, setCurrentBook, setCha
                     })}
                 </>
             )}
-            {page === 2 && <WorkSpace data={currentBook} setChapterTitle={setChapterTitle} setFrame={setFrame} refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} createChapter={createChapter} handleReturnPage={handleReturnPage} />}
+            {page === 2 && <WorkSpace setPage2={setPage} tags={tags} data={currentBook} setChapterTitle={setChapterTitle} setFrame={setFrame} refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} createChapter={createChapter} handleReturnPage={handleReturnPage} />}
         </div>
     )
 }

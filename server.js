@@ -268,7 +268,7 @@ app.post('/api/createBook', async (req, res) => {
     }
 })
 
-//存取小說資料
+//存取小說資料(單本詳細)
 app.get('/api/getNovel', (req, res) => {
     const { novelId } = req.body;
 
@@ -300,6 +300,8 @@ app.get('/api/getNovel', (req, res) => {
                         tag: tagArray,
                         view_count: novel.VIEW_COUNT,
                         status: novel.status,
+                        introduction: novel.introduction,
+                        progress: novel.progress
                     }
                 })
             );
@@ -310,6 +312,7 @@ app.get('/api/getNovel', (req, res) => {
     }
 });
 
+//存取小說資料(該作者所有)
 app.get('/api/getNovelByAuth', (req, res) => {
     const { authId } = req.query;
 
@@ -337,7 +340,8 @@ app.get('/api/getNovelByAuth', (req, res) => {
                     tag: tagArray,
                     view_count: novel.VIEW_COUNT,
                     status: novel.status,
-                    introduction: novel.introduction
+                    introduction: novel.introduction,
+                    progress: novel.progress
                 };
             });
 
@@ -508,6 +512,79 @@ app.post('/api/updateChapterViewCount', async (req, res) => {
             }
             return res.json({ success: true, message: "閱讀量已成功 +1", data: results });
         });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// 更新小說設定
+app.post('/api/updateBookSetting', async (req, res) => {
+    const { novelId, introduction, name, status, tags, progress } = req.body; 
+
+    if (!novelId) {
+        return res.status(400).json({ success: false, error: "缺少小說 ID" });
+    }
+
+    try {
+        let tagIds = [];
+        if (tags && tags.length > 0) {
+            const sqlFindTagIds = `SELECT id FROM tags WHERE name IN (?);`;
+            
+            const tagRows = await new Promise((resolve, reject) => {
+                db.query(sqlFindTagIds, [tags], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
+
+            tagIds = tagRows.map(row => row.id);
+        }
+
+        db.beginTransaction((err) => {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+
+            const sqlUpdateNovel = `
+                UPDATE novels
+                SET introduction = ?, status = ?, NAME = ?, progress = ?
+                WHERE ID = ?; 
+            `;
+            
+            db.query(sqlUpdateNovel, [introduction, status, name, progress, novelId], (err1) => {
+                if (err1) {
+                    return db.rollback(() => res.status(400).json({ success: false, error: err1.message }));
+                }
+
+                const sqlDeleteTags = `DELETE FROM novel_tags WHERE novel_id = ?;`;
+                
+                db.query(sqlDeleteTags, [novelId], (err2) => {
+                    if (err2) {
+                        return db.rollback(() => res.status(400).json({ success: false, error: err2.message }));
+                    }
+
+                    if (tagIds.length > 0) {
+                        const bulkValues = tagIds.map(id => [novelId, id]);
+                        const sqlInsertTags = `INSERT INTO novel_tags (novel_id, tag_id) VALUES ?;`;
+                        
+                        db.query(sqlInsertTags, [bulkValues], (err3) => {
+                            if (err3) {
+                                return db.rollback(() => res.status(400).json({ success: false, error: err3.message }));
+                            }
+                            
+                            db.commit((errCommit) => {
+                                if (errCommit) return db.rollback(() => res.status(500).json({ success: false, error: errCommit.message }));
+                                return res.json({ success: true, message: "小說資料與標籤全部更新成功！" });
+                            });
+                        });
+                    } else {
+                        db.commit((errCommit) => {
+                            if (errCommit) return db.rollback(() => res.status(500).json({ success: false, error: errCommit.message }));
+                            return res.json({ success: true, message: "小說資料已更新（標籤已清空）" });
+                        });
+                    }
+                });
+            });
+        });
+
     } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
     }

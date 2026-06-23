@@ -319,7 +319,7 @@ export default function CreatorPage({ setUser, user, tags }) {
 
                 {/* 右側內容 */}
                 <div style={{display:'flex', margin:40, width:'85%'}}>
-                    {page === 2 && <MyWork user={user} refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} currentBook={currentBook} setCurrentBook={setCurrentBook} setChapterTitle ={setChapterTitle} setFrame={setFrame} createChapter={createChapter} handleReturnPage={handleReturnPage2}/>}
+                    {page === 2 && <MyWork user={user} refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} currentBook={currentBook} setCurrentBook={setCurrentBook} setChapterTitle ={setChapterTitle} setFrame={setFrame} createChapter={createChapter} handleReturnPage={handleReturnPage2} tags={tags}/>}
                 </div>
             </div>
             {/* 彈出視窗 */}
