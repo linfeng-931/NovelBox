@@ -32,9 +32,6 @@ export default function WorkCard({data, action}) {
                 <p className='tag1'>{data.status}</p>
                 <div style={{ display: 'flex', gap: 20 }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <p className='content1'>字</p><p className='content1'>0</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         <Eye size={20} /><p className='content1'>{data.view_count}</p>
                     </div>
                 </div>

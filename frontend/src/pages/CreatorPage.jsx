@@ -6,6 +6,7 @@ import { handleLogout, handleCreateNovelTable, handleCreateChapterTable } from '
 import { useNavigate } from "react-router-dom";
 import { House, ChartColumn, CircleDollarSign, PenLine, LogOut, Undo2, Book, CircleX } from 'lucide-react';
 import MyWork from '@/component/MyWork';
+import WriterMainPage from '@/component/WriterMainPage';
 
 export default function CreatorPage({ setUser, user, tags }) {
     const navigate = useNavigate();
@@ -319,6 +320,7 @@ export default function CreatorPage({ setUser, user, tags }) {
 
                 {/* 右側內容 */}
                 <div style={{display:'flex', margin:40, width:'85%'}}>
+                    {page === 1 && <WriterMainPage user={user}/>}
                     {page === 2 && <MyWork user={user} refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} currentBook={currentBook} setCurrentBook={setCurrentBook} setChapterTitle ={setChapterTitle} setFrame={setFrame} createChapter={createChapter} handleReturnPage={handleReturnPage2} tags={tags}/>}
                 </div>
             </div>

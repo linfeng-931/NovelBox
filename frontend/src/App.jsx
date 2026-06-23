@@ -5,6 +5,9 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import UserPage from './pages/UserPage';
 import CreatorPage from './pages/CreatorPage';
+import BookShelves from './pages/BookShelves';
+import BookDetail from './pages/BookDetail';
+import Chapter from './pages/Chapter';
 import { handleGetTags } from './utils/linkDB';
 const host = 'http://localhost:3000';
 
@@ -57,6 +60,9 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<HomePage setUser={setUser} user={user} />} />
+        <Route path="/books" element={<BookShelves setUser={setUser} user={user}/>} />
+        <Route path="/bookDetail" element={<BookDetail user={user}/>} />
+        <Route path="/chapterDetail" element={<Chapter user={user}/>} />
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage setUser={setUser} />} />
         <Route path="/user" element={user ? <UserPage setUser={setUser} user={user} /> : <Navigate to="/" replace />} />
         <Route path="/creator" element={user ? <CreatorPage setUser={setUser} user={user} tags={tags} /> : <Navigate to="/" replace />} />

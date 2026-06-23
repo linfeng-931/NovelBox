@@ -7,7 +7,7 @@ import { Search } from 'lucide-react'
 
 export default function Header({ page, user }) {
     const [inputValue, changeInputValue] = useState("");
-    console.log(user);
+
     return (
         <div style={{
             width: '100%',
@@ -45,7 +45,7 @@ export default function Header({ page, user }) {
                         書庫
                     </div>
                     :
-                    <Link to="/novels" className="fontBtn" style={{ textDecoration: 'none' }}>
+                    <Link to="/books" className="fontBtn" style={{ textDecoration: 'none' }}>
                         <CenterUnderline>書庫</CenterUnderline>
                     </Link>
                 }

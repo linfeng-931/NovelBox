@@ -114,6 +114,26 @@ export const handleGetUserData = async (setUser) => {
     }
 };
 
+//存取其他使用者資料
+export const handleGetOtherUserData = async (setOtherUser, userId) => {
+    try {
+        const response = await fetch(`${host}/api/getOtherUserData?userId=${userId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setOtherUser(data.user);
+        } else {
+            alert("取得資料失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
 /* ----------- 創作空間 ----------- */
 //創建小說
 export const handleCreateNovelTable = async (novelData) => {
@@ -205,6 +225,25 @@ export const handleGetBooksByAuth = async (setBooks, authId) => {
     }
 };
 
+export const handleGetBookDetail = async (setBook, novelId) => {
+    try {
+        const response = await fetch(`${host}/api/getNovel?novelId=${novelId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setBook(data.novel);
+        } else {
+            alert("取得資料失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
 //存取章節資料
 export const handleGetBookChapters = async (setChapters, novelId) => {
     try {
@@ -217,7 +256,26 @@ export const handleGetBookChapters = async (setChapters, novelId) => {
 
         if (data.success) {
             setChapters(data.chapter);
-            console.log(data.chapter[0]);
+        } else {
+            alert("取得資料失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//存取章節資料(單個)
+export const handleGetChapterDetail = async (setChapter, chapterId) => {
+    try {
+        const response = await fetch(`${host}/api/getChapterDetail?chapterId=${chapterId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setChapter(data.chapter);
         } else {
             alert("取得資料失敗：" + data.error);
         }
@@ -275,21 +333,19 @@ export const handleUpdateChapterSetting = async (data) => {
 };
 
 //更新章節設定
-export const handleUpdateChapterViewCount = async (chapterId) => {
+export const handleUpdateChapterViewCount = async (chapterId, userId) => {
     try {
         const response = await fetch(`${host}/api/updateChapterViewCount`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ chapterId })
+            body: JSON.stringify({ chapterId, userId })
         });
 
         const resData = await response.json();
 
-        if (resData.success) {
-            alert(`閱讀量更新成功！`);
-        } else {
+        if (!resData.success) {
             alert("閱讀量更新失敗：" + resData.error);
         }
     } catch (error) {
@@ -314,6 +370,205 @@ export const handleUpdateBookSetting = async (data) => {
             alert(`小說更新成功！`);
         } else {
             alert("小說更新失敗：" + resData.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//全部小說, 是否排行
+export const handleGetNovels = async (setNovels, isRank = false) => {
+    try {
+        const sortParam = isRank ? 'view' : 'latest';
+        
+        const response = await fetch(`${host}/api/getNovels?sort=${sortParam}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setNovels(data.novels);
+        } else {
+            alert("取得小說列表失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//分類小說, 是否排行
+export const handleGetNovelsByTags = async (setNovels, selectedTags, isRank = false) => {
+    try {
+        if (!selectedTags || selectedTags.length === 0) {
+            return handleGetNovels(setNovels, isRank);
+        }
+
+        const tagString = selectedTags.join(',');
+        const sortParam = isRank ? 'view' : 'latest';
+
+        const url = `${host}/api/getNovels?tag=${encodeURIComponent(tagString)}&sort=${sortParam}`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setNovels(data.novels);
+        } else {
+            alert("篩選小說失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+/* ------------ 關聯表格 ------------ */
+//創建閱讀紀錄
+export const handleCreateReadData = async (novelId, userId, chapterId) => {
+    try {
+        const response = await fetch(`${host}/api/createReadData`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ novelId, userId, chapterId }),
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            alert("創建閱讀紀錄失敗：" + data.error);
+        }
+        return data;
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//創建購買紀錄
+export const handleCreateTransactionData = async (userId, chapterId, amount) => {
+    try {
+        const response = await fetch(`${host}/api/createTransactionData`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId, chapterId, amount }),
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("購買成功！");
+        } else {
+            alert("購買失敗：" + data.error);
+        }
+        return data;
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//存取使用者閱讀紀錄
+export const handleGetReadData = async (setRecords, userId) => {
+    try {
+        const response = await fetch(`${host}/api/getReadData?userId=${userId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setRecords(data.records);
+        } else {
+            alert("取得閱讀紀錄失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//存取使用者購買紀錄
+export const handleGetUserTransactionData = async (setRecords, userId) => {
+    try {
+        const response = await fetch(`${host}/api/getUserTransactionData?userId=${userId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setRecords(data.records);
+        } else {
+            alert("取得購買紀錄失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//存取購買紀錄（作家）
+export const handleGetCreatorTransactionData = async (setRecords, userId) => {
+    try {
+        const response = await fetch(`${host}/api/getCreatorTransactionData?userId=${userId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setRecords(data.records);
+        } else {
+            alert("取得作家營收紀錄失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+/* ------------ 固定資料 ------------ */
+export const handleGetWriterLevel = async (setRule) => {
+    try {
+        const response = await fetch(`${host}/api/getWriterLevel`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setRule(data.rule);
+        } else {
+            alert("取得作家等級失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+export const handleGetReaderLevel = async (setRule) => {
+    try {
+        const response = await fetch(`${host}/api/getReaderLevel`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setRule(data.rule);
+        } else {
+            alert("取得讀者等級失敗：" + data.error);
         }
     } catch (error) {
         alert("連結後端失敗：" + error.message);
