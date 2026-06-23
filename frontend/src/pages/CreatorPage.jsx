@@ -2,9 +2,10 @@ import { useState } from 'react'
 import '../App.css'
 import Header2 from '@/component/Header2';
 import { Link } from 'react-router-dom'
-import { handleLogout, handleCreateNovelTable } from '@/utils/linkDB';
+import { handleLogout, handleCreateNovelTable, handleCreateChapterTable } from '@/utils/linkDB';
 import { useNavigate } from "react-router-dom";
 import { House, ChartColumn, CircleDollarSign, PenLine, LogOut, Undo2, Book, CircleX } from 'lucide-react';
+import MyWork from '@/component/MyWork';
 
 export default function CreatorPage({ setUser, user, tags }) {
     const navigate = useNavigate();
@@ -13,9 +14,15 @@ export default function CreatorPage({ setUser, user, tags }) {
     }
     const [page, setPage] = useState(1);
 
+    //new book
     const [creat, setCreat] = useState(false);
     const [novelName, setNovelName] = useState('');
     const [novelTag, setNovelTag] = useState([]);
+
+    //new chapter
+    const [chapterTitle, setChapterTitle] = useState('');
+    const [frame, setFrame] = useState(false);
+    const [currentBook, setCurrentBook] = useState(null);
 
     //Error messages
     const [novelNameError, setNovelNameError] = useState('');
@@ -167,75 +174,157 @@ export default function CreatorPage({ setUser, user, tags }) {
         </div>
     );
 
+
+    //chapter
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const createChapter = async() => {
+        const cData = {
+            title: chapterTitle,
+            novelId: currentBook.novel_id,
+        }
+        await handleCreateChapterTable(cData);
+        handleReturnPage2();
+        setRefreshTrigger(prev => prev + 1); 
+    }
+
+    const handleReturnPage2 = () => {
+        setFrame(false);
+        setChapterTitle('');
+    }
+    const newChapter = (
+        <div
+            style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100vh',
+                backgroundColor: '#ff3f3f20',
+                backdropFilter: 'blur(8px)',
+                top: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}
+        >
+            <div
+                style={{
+                    width: '30rem',
+                    backgroundColor: '#ffffffff',
+                    borderRadius: 8,
+                    padding: 30,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 25
+                }}
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 10 }}>
+                    <p className='title2'>章節名稱</p>
+                    <input
+                        className="frameInput"
+                        type="text"
+                        placeholder="請輸入章節名稱"
+                        onChange={(e) => setChapterTitle(e.target.value)}
+                    />
+                </div>
+
+                <div style={{ display: 'flex', width: '100%', gap: 20 }}>
+                    <button
+                        className='normalBtn2'
+                        style={{ width: '100%' }}
+                        onClick={handleReturnPage2}
+                    >返回</button>
+                    <button
+                        className={chapterTitle !== '' ? 'normalBtn' : 'disableNormalBtn'}
+                        style={{ width: '100%' }}
+                        disabled={chapterTitle === ''}
+                        onClick={createChapter}
+                    >創建章節</button>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div>
             <Header2 />
-            <div style={{
-                marginTop: 20,
-                width: '16rem',
-                boxShadow: '0px 0px 5px 0px rgba(0, 0, 0, 0.1)',
-                padding: 30,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                gap: 20,
-                height: '85vh'
-            }}>
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 20,
-                    }}
-                >
-                    <button onClick={() => setCreat(true)} className='normalBtn' style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}><PenLine size={18} />開新書</button>
+            <div style={{display:'flex', width:'100%'}}>
+                {/* 左側選單 */}
+                <div style={{
+                    marginTop: 20,
+                    width: '16rem',
+                    boxShadow: '0px 0px 5px 0px rgba(0, 0, 0, 0.1)',
+                    padding: 30,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: 20,
+                    height: '85vh'
+                }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 20,
+                        }}
+                    >
+                        <button onClick={() => setCreat(true)} className='normalBtn' style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}><PenLine size={18} />開新書</button>
 
-                    {page === 1 ?
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
-                            <House size={18} />主頁
-                        </div>
-                        :
-                        <button onClick={() => setPage(1)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><House size={18} />主頁</button>
-                    }
-                    {page === 2 ?
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
-                            <Book size={18} />我的作品
-                        </div>
-                        :
-                        <button onClick={() => setPage(2)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><Book size={18} />我的作品</button>
-                    }
-                    <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
-                    {page === 3 ?
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
-                            <ChartColumn size={18} />數據中心
-                        </div>
-                        :
-                        <button onClick={() => setPage(3)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><ChartColumn size={18} />數據中心</button>
-                    }
-                    {page === 4 ?
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
-                            <CircleDollarSign size={18} />我的收益
-                        </div>
-                        :
-                        <button onClick={() => setPage(4)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><CircleDollarSign size={18} />我的收益</button>
-                    }
-                    <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
+                        {page === 1 ?
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
+                                <House size={18} />主頁
+                            </div>
+                            :
+                            <button onClick={() => setPage(1)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><House size={18} />主頁</button>
+                        }
+                        {page === 2 ?
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
+                                <Book size={18} />我的作品
+                            </div>
+                            :
+                            <button onClick={() => setPage(2)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><Book size={18} />我的作品</button>
+                        }
+                        <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
+                        {page === 3 ?
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
+                                <ChartColumn size={18} />數據中心
+                            </div>
+                            :
+                            <button onClick={() => setPage(3)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><ChartColumn size={18} />數據中心</button>
+                        }
+                        {page === 4 ?
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
+                                <CircleDollarSign size={18} />我的收益
+                            </div>
+                            :
+                            <button onClick={() => setPage(4)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><CircleDollarSign size={18} />我的收益</button>
+                        }
+                        <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 20,
+                        }}
+                    >
+                        <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
+                        <Link to="/" className="fontBtn" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 20 }}>
+                            <Undo2 size={18} />返回讀書區
+                        </Link>
+                        <button className="fontBtn" onClick={Logout} style={{ display: 'flex', alignItems: 'center', gap: 20 }}><LogOut size={18} />登出</button>
+                    </div>
                 </div>
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 20,
-                    }}
-                >
-                    <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
-                    <Link to="/" className="fontBtn" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 20 }}>
-                        <Undo2 size={18} />返回讀書區
-                    </Link>
-                    <button className="fontBtn" onClick={Logout} style={{ display: 'flex', alignItems: 'center', gap: 20 }}><LogOut size={18} />登出</button>
+
+                {/* 右側內容 */}
+                <div style={{display:'flex', margin:40, width:'85%'}}>
+                    {page === 2 && <MyWork user={user} refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} currentBook={currentBook} setCurrentBook={setCurrentBook} setChapterTitle ={setChapterTitle} setFrame={setFrame} createChapter={createChapter} handleReturnPage={handleReturnPage2}/>}
                 </div>
             </div>
+            {/* 彈出視窗 */}
             {creat && newBook}
+            {frame && newChapter}
         </div>
     )
 }

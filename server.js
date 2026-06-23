@@ -298,12 +298,54 @@ app.get('/api/getNovel', (req, res) => {
                         name: novel.NAME,
                         auth: novel.AUTHOR_ID,
                         tag: tagArray,
-                        view_count: novel.VIEW_COUNT
+                        view_count: novel.VIEW_COUNT,
+                        status: novel.status,
                     }
                 })
             );
         });
         return res.json({ success: true });
+    } catch (err) {
+        return res.status(401).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/getNovelByAuth', (req, res) => {
+    const { authId } = req.query;
+
+    try {
+        const sql = `
+            SELECT n.*, GROUP_CONCAT(t.name) AS tags
+            FROM novels n
+            LEFT JOIN novel_tags nt ON n.id = nt.novel_id
+            LEFT JOIN tags t ON nt.tag_id = t.id
+            WHERE n.author_id = ?
+            GROUP BY n.id;
+        `;
+        db.query(sql, [authId], (dbErr, results) => {
+            if (dbErr) {
+                return res.status(500).json({ success: false, error: "小說資料存取失敗" + dbErr.message });
+            }
+            if (results.length === 0) return res.status(404).json({ success: false, error: "找不到小說" });
+
+            const novelList = results.map(novel => {
+                const tagArray = novel.tags ? novel.tags.split(',') : [];
+                return {
+                    novel_id: novel.ID,
+                    name: novel.NAME,
+                    auth: novel.AUTHOR_ID,
+                    tag: tagArray,
+                    view_count: novel.VIEW_COUNT,
+                    status: novel.status,
+                    introduction: novel.introduction
+                };
+            });
+
+            return res.json({
+                success: true,
+                novel: novelList
+            })
+        });
     } catch (err) {
         return res.status(401).json({ success: false, error: err.message });
     }
@@ -332,6 +374,140 @@ app.get('/api/getTag', (req, res) => {
             );
         });
 
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+//創建章節
+app.post('/api/createChapter', async (req, res) => {
+    const { novelId, title } = req.body;
+
+    try {
+        const sql = `
+            INSERT INTO chapter (novel_id, title)
+            VALUES (?, ?);
+        `;
+
+        db.query(sql, [novelId, title], (err, results) => {
+            if (err) {
+                return res.status(400).json({ success: false, error: err.message });
+            }
+            return res.json({ success: true, data: results });
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+})
+
+//存取章節資料
+app.get('/api/getChapter', (req, res) => {
+    const { novelId } = req.query;
+
+    try {
+        const sql = `
+            SELECT *
+            FROM chapter
+            WHERE novel_id = ?
+        `;
+        db.query(sql, [novelId], (dbErr, results) => {
+            if (dbErr) {
+                return res.status(500).json({ success: false, error: "小說資料存取失敗" + dbErr.message });
+            }
+            if (results.length === 0) return res.json({
+                success: true,
+                chapter: []
+            });
+
+            const chapterList = results.map(chapter => {
+                return {
+                    chapter_id: chapter.ID,
+                    number: chapter.CHAPTER_NUMBER,
+                    title: chapter.TITLE,
+                    content: chapter.CONTENT,
+                    status: chapter.status,
+                    time: chapter.PUBLISH_AT,
+                    price: chapter.price
+                };
+            });
+
+            return res.json({
+                success: true,
+                chapter: chapterList
+            })
+        });
+
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+//更新章節內容
+app.post('/api/updateChapterContent', async (req, res) => {
+    const { chapterId, content } = req.body;
+
+    try {
+        const sql = `
+            UPDATE chapter
+            SET CONTENT = ?
+            WHERE ID = ?;
+        `;
+
+        db.query(sql, [content, chapterId], (err, results) => {
+            if (err) {
+                return res.status(400).json({ success: false, error: err.message });
+            }
+            return res.json({ success: true, data: results });
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+})
+
+//更新章節設定
+app.post('/api/updateChapterSetting', async (req, res) => {
+    const { chapterId, title, status, price } = req.body;
+    const publish_at = status === 'published' ? new Date().toLocaleString('sv-SE') : null;
+
+    try {
+        const sql = `
+            UPDATE chapter
+            SET TITLE = ?, status = ?, PUBLISH_AT = ?, price = ?
+            WHERE ID = ?;
+        `;
+
+        db.query(sql, [title, status, publish_at, price, chapterId], (err, results) => {
+            if (err) {
+                return res.status(400).json({ success: false, error: err.message });
+            }
+            return res.json({ success: true, data: results });
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+})
+
+//更新章節閱讀量設定
+app.post('/api/updateChapterViewCount', async (req, res) => {
+    const { chapterId } = req.body; 
+
+    if (!chapterId) {
+        return res.status(400).json({ success: false, error: "缺少章節 ID" });
+    }
+
+    try {
+        const sql = `
+            UPDATE chapter
+            SET view_count = view_count + 1
+            WHERE id = ?; 
+        `;
+
+        db.query(sql, [chapterId], (err, results) => {
+            if (err) {
+                return res.status(400).json({ success: false, error: err.message });
+            }
+            return res.json({ success: true, message: "閱讀量已成功 +1", data: results });
+        });
     } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
     }

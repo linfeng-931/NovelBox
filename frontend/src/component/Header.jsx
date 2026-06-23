@@ -49,7 +49,7 @@ export default function Header({ page, user }) {
                         <CenterUnderline>書庫</CenterUnderline>
                     </Link>
                 }
-                {user.role === "writer" &&
+                {user?.role === "writer" &&
                     (page === 3 ?
                         <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', cursor: 'default' }}>
                             創作中心

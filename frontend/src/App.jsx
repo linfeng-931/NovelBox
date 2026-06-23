@@ -35,6 +35,9 @@ function App() {
           console.log("驗證失敗：", data.error);
           setUser(null);
         }
+        if (res.status === 401) {
+          setUser(null);
+        }
       } catch (err) {
         console.log("連線或驗證失敗：", err.message);
         setUser(null);
@@ -56,7 +59,7 @@ function App() {
         <Route path="/" element={<HomePage setUser={setUser} user={user} />} />
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage setUser={setUser} />} />
         <Route path="/user" element={user ? <UserPage setUser={setUser} user={user} /> : <Navigate to="/" replace />} />
-        <Route path="/creator" element={user ? <CreatorPage setUser={setUser} user={user} tags={tags}/> : <Navigate to="/" replace />} />
+        <Route path="/creator" element={user ? <CreatorPage setUser={setUser} user={user} tags={tags} /> : <Navigate to="/" replace />} />
       </Routes>
     </>
   )
