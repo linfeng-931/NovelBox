@@ -1,5 +1,5 @@
 import '../App.css'
-import { Eye } from 'lucide-react';
+import { Eye, Lock } from 'lucide-react';
 
 export default function WorkCard2({ data, action, isReader = false }) {
     return (
@@ -8,7 +8,10 @@ export default function WorkCard2({ data, action, isReader = false }) {
                 backgroundColor: '#f5f5f5ff',
                 width: '100%',
                 borderRadius: 5,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display:'flex',
+                justifyContent:'space-between',
+                alignItems:'center'
             }}
             onClick={action}
         >
@@ -37,6 +40,17 @@ export default function WorkCard2({ data, action, isReader = false }) {
                     </div>
                 </div>
             </div>
+            {(data.price > 0 && isReader) &&
+                <div 
+                className='tag3'
+                style={{
+                    padding: 50,
+                    display:'flex',
+                    gap: 10,
+                    alignItems:'center',
+                }}
+                ><Lock size={18}/>{data.price}</div>
+            }
         </div>
     )
 }

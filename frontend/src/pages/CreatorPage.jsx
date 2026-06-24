@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import '../App.css'
 import Header2 from '@/component/Header2';
 import { Link } from 'react-router-dom'
-import { handleLogout, handleCreateNovelTable, handleCreateChapterTable } from '@/utils/linkDB';
+import { handleLogout, handleGetBooksByAuth, handleCreateNovelTable, handleCreateChapterTable, handleGetCreatorTransactionData } from '@/utils/linkDB';
 import { useNavigate } from "react-router-dom";
-import { House, ChartColumn, CircleDollarSign, PenLine, LogOut, Undo2, Book, CircleX } from 'lucide-react';
+import { House, ChartColumn, CircleDollarSign, PenLine, LogOut, Undo2, Book, CircleX, Users } from 'lucide-react';
 import MyWork from '@/component/MyWork';
 import WriterMainPage from '@/component/WriterMainPage';
+import MyProfit from '@/component/MyProfit';
 
 export default function CreatorPage({ setUser, user, tags }) {
     const navigate = useNavigate();
@@ -24,10 +25,59 @@ export default function CreatorPage({ setUser, user, tags }) {
     const [chapterTitle, setChapterTitle] = useState('');
     const [frame, setFrame] = useState(false);
     const [currentBook, setCurrentBook] = useState(null);
+    const [viewCount, setViewCount] = useState(0);
 
     //Error messages
     const [novelNameError, setNovelNameError] = useState('');
     const [novelTagError, setNovelTagError] = useState('');
+
+    //Profit
+    const [profit, setProfit] = useState([]);
+    const [amount, setAmount] = useState(0);
+
+    //books
+    const [books, setBooks] = useState([]);
+    const [chapterCount, setChapterCount] = useState(0);
+
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    useEffect(() => {
+        if (user?.user_id) {
+            handleGetBooksByAuth(setBooks, user.user_id)
+                .catch(err => console.log("撈取作品失敗：", err));
+        }
+    }, [user?.user_id, refreshTrigger]);
+
+    useEffect(() => {
+        if (!books || books.length === 0) return;
+
+        let totalView = 0;
+        let totalChapter = 0;
+        books.forEach(book => {
+            totalView += (book.view_count || 0);
+            totalChapter += (book.chapter_count || 0);
+        });
+
+        setChapterCount(totalChapter);
+        setViewCount(totalView);
+    }, [books]);
+
+    useEffect(() => {
+        if (user?.user_id) {
+            handleGetCreatorTransactionData(setProfit, user.user_id);
+        }
+    }, [user?.user_id]);
+
+    useEffect(() => {
+        if (!profit || profit.length === 0) return;
+
+        const totalProfit = profit.reduce((sum, p) => {
+            return sum + (p.amount ? Number(p.amount) : 0);
+        }, 0);
+
+        setAmount(totalProfit);
+
+    }, [profit]);
 
     const handleNovelNameChange = (e) => {
         const value = e.target.value;
@@ -49,17 +99,17 @@ export default function CreatorPage({ setUser, user, tags }) {
         } else {
             updatedTags = novelTag.filter(t => t !== currentTag);
         }
-        
+
         setNovelTag(updatedTags);
 
-        if(updatedTags.length === 0){
+        if (updatedTags.length === 0) {
             setNovelTagError("請勾選至少一項標籤");
-        }else {
+        } else {
             setNovelTagError('');
         }
     };
 
-    const handleReturnPage = () =>{
+    const handleReturnPage = () => {
         setNovelName('')
         setNovelNameError('');
         setNovelTagError('');
@@ -73,13 +123,14 @@ export default function CreatorPage({ setUser, user, tags }) {
         novelTagError !== '' ||
         novelNameError !== '';
 
-    const CreateBook = async() =>{
+    const CreateBook = async () => {
         const novelData = {
             name: novelName,
             tag: novelTag,
             authId: user.user_id
         };
         handleCreateNovelTable(novelData);
+        handleReturnPage();
     }
 
     const newBook = (
@@ -141,7 +192,7 @@ export default function CreatorPage({ setUser, user, tags }) {
                                         type="checkbox"
                                         id="privacy"
                                         className='checkBox'
-                                        onClick={(e) => handleTagChange(e,tag)}
+                                        onClick={(e) => handleTagChange(e, tag)}
                                     />
                                     <p className='content1'>{tag}</p>
                                 </div>
@@ -177,15 +228,14 @@ export default function CreatorPage({ setUser, user, tags }) {
 
 
     //chapter
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const createChapter = async() => {
+    const createChapter = async () => {
         const cData = {
             title: chapterTitle,
             novelId: currentBook.novel_id,
         }
         await handleCreateChapterTable(cData);
         handleReturnPage2();
-        setRefreshTrigger(prev => prev + 1); 
+        setRefreshTrigger(prev => prev + 1);
     }
 
     const handleReturnPage2 = () => {
@@ -250,7 +300,7 @@ export default function CreatorPage({ setUser, user, tags }) {
     return (
         <div>
             <Header2 />
-            <div style={{display:'flex', width:'100%'}}>
+            <div style={{ display: 'flex', width: '100%' }}>
                 {/* 左側選單 */}
                 <div style={{
                     marginTop: 20,
@@ -319,9 +369,10 @@ export default function CreatorPage({ setUser, user, tags }) {
                 </div>
 
                 {/* 右側內容 */}
-                <div style={{display:'flex', margin:40, width:'85%'}}>
-                    {page === 1 && <WriterMainPage user={user}/>}
-                    {page === 2 && <MyWork user={user} refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} currentBook={currentBook} setCurrentBook={setCurrentBook} setChapterTitle ={setChapterTitle} setFrame={setFrame} createChapter={createChapter} handleReturnPage={handleReturnPage2} tags={tags}/>}
+                <div style={{ display: 'flex', margin: 40, width: '85%' }}>
+                    {page === 1 && <WriterMainPage user={user} amount={amount} viewCount={viewCount} chapterCount={chapterCount} />}
+                    {page === 2 && <MyWork books={books} viewCount={viewCount} setViewCount={setViewCount} user={user} refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} currentBook={currentBook} setCurrentBook={setCurrentBook} setChapterTitle={setChapterTitle} setFrame={setFrame} createChapter={createChapter} handleReturnPage={handleReturnPage2} tags={tags} />}
+                    {page === 4 && <MyProfit profit={profit} amount={amount} />}
                 </div>
             </div>
             {/* 彈出視窗 */}

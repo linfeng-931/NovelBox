@@ -15,34 +15,13 @@ export default function HomePage({setUser, user}) {
         handleGetNovels(setRankNovels, true); 
     }, []);
 
-  /*const renderTable = () => {
-    if (dbData.length === 0) return <p>目前沒有資料</p>;
-
-    const header = Object.keys(dbData[0]);
-
-    return (
-      <table>
-        <thead>
-          <tr>
-            {header.map(h => <th key={h}>{h}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {dbData.map((row, idx) => (
-            <tr key={idx}>
-              {header.map(h => <td>{String(row[h])}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  }*/
-
   return (
     <div>
       <Header page={1} user={user}/>
       <img style={{width: '100%'}} src={mainPageImg} alt="主頁圖片"/>
-      <SlideBar data={rankNovels.slice(0, 15)}/>
+      <div style={{padding: 40}}>
+        <SlideBar data={rankNovels.slice(0, 15)}/>
+      </div>
     </div>
   )
 }

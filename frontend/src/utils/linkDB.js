@@ -28,6 +28,55 @@ export const handleCreateUserTable = async (userData) => {
     }
 };
 
+// 更新使用者個人資料明細
+export const handleUpdateProfile = async (userId, name, introduction) => {
+    try {
+        const response = await fetch(`${host}/api/updateProfile`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId, name, introduction }),
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("修改成功！");
+        } else {
+            alert("修改失敗：" + data.error);
+        }
+        return data;
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+// 更新使用者代幣點數
+export const handleUpdateUserPoint = async (userId, action, pointAmount) => {
+    try {
+        const response = await fetch(`${host}/api/updateUserPoint`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            //action ('add'/'deduct')
+            body: JSON.stringify({ userId, action, pointAmount }),
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+        
+        if (!data.success) {
+            alert("點數異動失敗：" + data.error);
+        }
+        return data; 
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
 //login
 export const handleLogin = async (loginData, setUser, navigate) => {
     const { email, password } = loginData;
@@ -476,6 +525,45 @@ export const handleCreateTransactionData = async (userId, chapterId, amount) => 
     }
 };
 
+//檢查章節是否已解鎖/購買過
+export const handleCheckTransactionData = async (userId, chapterId) => {
+    try {
+        const response = await fetch(`${host}/api/checkTransactionData?userId=${userId}&chapterId=${chapterId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("檢查購買紀錄失敗：", error);
+        return { success: false, purchased: false };
+    }
+};
+
+// 創建儲值點數紀錄明細
+export const handleCreateTransactionPoint = async (userId, point, price) => {
+    try {
+        const response = await fetch(`${host}/api/createTransactionPoint`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId, point, price }),
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("儲值成功！");
+        } else {
+            alert("儲值失敗：" + data.error);
+        }
+        return data;
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
 //存取使用者閱讀紀錄
 export const handleGetReadData = async (setRecords, userId) => {
     try {
@@ -500,6 +588,26 @@ export const handleGetReadData = async (setRecords, userId) => {
 export const handleGetUserTransactionData = async (setRecords, userId) => {
     try {
         const response = await fetch(`${host}/api/getUserTransactionData?userId=${userId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setRecords(data.records);
+        } else {
+            alert("取得購買紀錄失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+//存取使用者點數購買紀錄
+export const handleGetUserPointTransactionData = async (setRecords, userId) => {
+    try {
+        const response = await fetch(`${host}/api/getUserPointTransactionData?userId=${userId}`, {
             method: 'GET',
             credentials: 'include',
         });
@@ -569,6 +677,25 @@ export const handleGetReaderLevel = async (setRule) => {
             setRule(data.rule);
         } else {
             alert("取得讀者等級失敗：" + data.error);
+        }
+    } catch (error) {
+        alert("連結後端失敗：" + error.message);
+    }
+};
+
+export const handleGetPointRule = async (setRule) => {
+    try {
+        const response = await fetch(`${host}/api/getPoint`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            setRule(data.rule);
+        } else {
+            alert("點數資料存取失敗：" + data.error);
         }
     } catch (error) {
         alert("連結後端失敗：" + error.message);

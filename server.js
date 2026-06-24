@@ -128,13 +128,90 @@ app.post('/api/login', (req, res) => {
                         role: user.role,
                         reader_exp: user.READER_EXP,
                         writer_exp: user.writer_exp,
-                        introduction: user.introduction
+                        introduction: user.introduction,
+                        point: user.point
                     }
                 })
             );
         } catch (err) {
             res.status(500).json({ success: false, error: "密碼比對出錯：" + err.message });
         }
+    });
+});
+
+// 更新使用者個人資料（名字、簡介）
+app.post('/api/updateProfile', (req, res) => {
+    const { userId, name, introduction } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ success: false, error: "缺少使用者 ID" });
+    }
+
+    const sql = `
+        UPDATE \`users\` 
+        SET \`NAME\` = ?, \`introduction\` = ? 
+        WHERE \`USER_ID\` = ?;
+    `;
+
+    db.query(sql, [name, introduction, userId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, error: "更新個人資料失敗：" + err.message });
+        }
+        
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: "找不到該名使用者" });
+        }
+
+        return res.json({
+            success: true,
+            message: "個人資料更新成功！"
+        });
+    });
+});
+
+//增減使用者的代幣點數
+app.post('/api/updateUserPoint', (req, res) => {
+    const { userId, action, pointAmount } = req.body; 
+
+    if (!userId || !action || pointAmount === undefined || pointAmount <= 0) {
+        return res.status(400).json({ success: false, error: "缺少參數或點數異動量不合法" });
+    }
+
+    let sql = "";
+    let params = [];
+
+    if (action === 'add') {
+        sql = `
+            UPDATE \`users\` 
+            SET \`point\` = \`point\` + ? 
+            WHERE \`USER_ID\` = ?;
+        `;
+        params = [pointAmount, userId];
+    } else if (action === 'deduct') {
+        sql = `
+            UPDATE \`users\` 
+            SET \`point\` = \`point\` - ? 
+            WHERE \`USER_ID\` = ? AND \`point\` >= ?;
+        `;
+        params = [pointAmount, userId, pointAmount];
+    } else {
+        return res.status(400).json({ success: false, error: "不合法的操作類型 (action)" });
+    }
+
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, error: "更新使用者點數失敗：" + err.message });
+        }
+
+        if (results.affectedRows === 0) {
+            const errorMsg = action === 'deduct' ? "點數餘額不足或使用者不存在" : "找不到該名使用者";
+            return res.status(400).json({ success: false, error: errorMsg });
+        }
+
+        return res.json({
+            success: true,
+            message: `點數${action === 'add' ? '儲值' : '扣除'}成功！`
+        });
     });
 });
 
@@ -190,7 +267,8 @@ app.get('/api/getUserData', (req, res) => {
                         role: user.role,
                         reader_exp: user.READER_EXP,
                         writer_exp: user.writer_exp,
-                        introduction: user.introduction
+                        introduction: user.introduction,
+                        point: user.point
                     }
                 })
             );
@@ -343,7 +421,8 @@ app.get('/api/getNovel', (req, res) => {
                         view_count: novel.VIEW_COUNT,
                         status: novel.status,
                         introduction: novel.introduction,
-                        progress: novel.progress
+                        progress: novel.progress,
+                        chapter_count: novel.chapter_count
                     }
                 })
             );
@@ -382,7 +461,8 @@ app.get('/api/getNovelByAuth', (req, res) => {
                     view_count: novel.VIEW_COUNT,
                     status: novel.status,
                     introduction: novel.introduction,
-                    progress: novel.progress
+                    progress: novel.progress,
+                    chapter_count: novel.chapter_count
                 };
             });
 
@@ -447,7 +527,8 @@ app.get('/api/getNovels', (req, res) => {
                     view_count: novel.VIEW_COUNT,
                     status: novel.status,
                     introduction: novel.introduction,
-                    progress: novel.progress
+                    progress: novel.progress,
+                    chapter_count: novel.chapter_count
                 };
             });
 
@@ -478,14 +559,27 @@ app.post('/api/createChapter', async (req, res) => {
             WHERE novel_id = ?;
         `;
 
+        const sqlUpdateChapterCount = `
+            UPDATE novels, chapter
+            SET novels.chapter_count = COALESCE(novels.chapter_count, 0) + 1
+            WHERE novel_id = ?;
+        `;
+
         db.query(sql, [novelId, title, novelId], (err, results) => {
             if (err) {
                 return res.status(400).json({ success: false, error: "創建章節失敗：" + err.message });
             }
-            return res.json({
-                success: true,
-                message: "章節創建成功！",
-                insertId: results.insertId
+
+            //更新小說總章節數
+            db.query(sqlUpdateChapterCount, [novelId], (errNovel, novelResults) => {
+                if (errNovel) {
+                    return res.status(400).json({ success: false, error: "更新小說總章節失敗: " + errNovel.message });
+                }
+                return res.json({
+                    success: true,
+                    message: "章節創建成功！",
+                    insertId: results.insertId
+                });
             });
         });
     } catch (err) {
@@ -831,7 +925,33 @@ app.post('/api/createTransactionData', async (req, res) => {
     }
 })
 
-//存取使用者閱讀紀錄
+// 創建代幣儲值紀錄
+app.post('/api/createTransactionPoint', (req, res) => {
+    const { userId, point, price } = req.body;
+
+    if (!userId || point === undefined || price === undefined) {
+        return res.status(400).json({ success: false, error: "缺少使用者 ID、點數或金額" });
+    }
+
+    const sql = `
+        INSERT INTO transaction_point (buyer_id, point, price)
+        VALUES (?, ?, ?);
+    `;
+
+    db.query(sql, [userId, point, price], (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, error: "儲值紀錄創建失敗：" + err.message });
+        }
+        
+        return res.json({
+            success: true,
+            message: "儲值紀錄創建成功！",
+            insertId: results.insertId
+        });
+    });
+});
+
+// 存取使用者閱讀紀錄
 app.get('/api/getReadData', (req, res) => {
     const { userId } = req.query;
 
@@ -839,36 +959,45 @@ app.get('/api/getReadData', (req, res) => {
         return res.status(400).json({ success: false, error: "缺少使用者 ID" });
     }
 
-    try {
-        const sql = `
-            SELECT *
-            FROM BOOKSHELVES
-            WHERE user_id = ?
-        `;
-        db.query(sql, [userId], (dbErr, results) => {
-            if (dbErr) {
-                return res.status(500).json({ success: false, error: "閱讀紀錄存取失敗：" + dbErr.message });
-            }
-            
-            if (!results || results.length === 0) {
-                return res.json({ success: true, records: [] });
-            }
+    const sql = `
+        SELECT 
+            b.id AS record_id,
+            b.novel_id,
+            b.user_id,
+            b.recent_read_chapter AS chapter_id,
+            n.name AS novel_name,
+            c.chapter_number AS chapter_number,
+            c.title AS chapter_title
+        FROM BOOKSHELVES b
+        LEFT JOIN novels n ON b.novel_id = n.id
+        LEFT JOIN chapter c ON b.recent_read_chapter = c.id
+        WHERE b.user_id = ?;
+    `;
 
-            const recordsList = results.map(record => ({
-                record_id: record.id || record.ID,
-                novel_id: record.novel_id,
-                user_id: record.user_id,
-                chapter_id: record.recent_read_chapter
-            }));
+    db.query(sql, [userId], (dbErr, results) => {
+        if (dbErr) {
+            return res.status(500).json({ success: false, error: "閱讀紀錄存取失敗：" + dbErr.message });
+        }
 
-            return res.json({
-                success: true,
-                records: recordsList
-            });
+        if (!results || results.length === 0) {
+            return res.json({ success: true, records: [] });
+        }
+
+        const recordsList = results.map(record => ({
+            record_id: record.record_id,
+            novel_id: record.novel_id,
+            user_id: record.user_id,
+            chapter_id: record.chapter_id,
+            novel_name: record.novel_name || "未知小說",
+            chapter_number: record.chapter_number || 0,
+            chapter_title: record.chapter_title || "未知章節"
+        }));
+
+        return res.json({
+            success: true,
+            records: recordsList
         });
-    } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
-    }
+    });
 });
 
 //存取使用者購買紀錄
@@ -880,9 +1009,50 @@ app.get('/api/getUserTransactionData', (req, res) => {
     }
 
     const sql = `
-        SELECT t.*, c.TITLE AS chapter_title 
+        SELECT t.*, c.TITLE AS chapter_title, n.NAME AS novel_name
         FROM TRANSACTION t
-        LEFT JOIN chapter c ON t.chapter_id = c.ID
+        JOIN chapter c ON t.chapter_id = c.ID
+        JOIN novels n ON c.novel_id = n.ID
+        WHERE t.BUYER_ID = ?
+        ORDER BY t.CREATED_AT DESC;
+    `;
+
+    db.query(sql, [userId], (dbErr, results) => {
+        if (dbErr) {
+            return res.status(500).json({ success: false, error: "讀者購買紀錄存取失敗：" + dbErr.message });
+        }
+
+        if (!results || results.length === 0) {
+            return res.json({ success: true, records: [] });
+        }
+
+        const recordsList = results.map(record => ({
+            record_id: record.id || record.ID,
+            chapter_id: record.CHIPTER_ID,
+            novel_name: record.novel_name,
+            chapter_title: record.chapter_title || "未知章節",
+            amount: record.AMOUNT,
+            created_at: record.CREATED_AT
+        }));
+
+        return res.json({
+            success: true,
+            records: recordsList
+        });
+    });
+});
+
+//存取使用者點數購買紀錄
+app.get('/api/getUserPointTransactionData', (req, res) => {
+    const { userId } = req.query;
+
+    if (!userId) {
+        return res.status(400).json({ success: false, error: "缺少使用者 ID" });
+    }
+
+    const sql = `
+        SELECT t.*
+        FROM transaction_point t
         WHERE t.buyer_id = ?
         ORDER BY t.created_at DESC;
     `;
@@ -891,16 +1061,15 @@ app.get('/api/getUserTransactionData', (req, res) => {
         if (dbErr) {
             return res.status(500).json({ success: false, error: "讀者購買紀錄存取失敗：" + dbErr.message });
         }
-        
+
         if (!results || results.length === 0) {
             return res.json({ success: true, records: [] });
         }
 
         const recordsList = results.map(record => ({
             record_id: record.id || record.ID,
-            chapter_id: record.chapter_id,
-            chapter_title: record.chapter_title || "未知章節",
-            amount: record.amount,
+            amount: record.point,
+            price: record.price,
             created_at: record.created_at
         }));
 
@@ -932,24 +1101,42 @@ app.get('/api/getCreatorTransactionData', (req, res) => {
         if (dbErr) {
             return res.status(500).json({ success: false, error: "作家交易紀錄存取失敗：" + dbErr.message });
         }
-        
+
         if (!results || results.length === 0) {
             return res.json({ success: true, records: [] });
         }
 
         const recordsList = results.map(record => ({
             record_id: record.id || record.ID,
-            chapter_id: record.chapter_id,
-            chapter_title: record.chapter_title,
+            chapter_id: record.CHIPTER_ID,
             novel_name: record.novel_name,
-            amount: record.amount,
-            created_at: record.created_at
+            chapter_title: record.chapter_title || "未知章節",
+            amount: record.AMOUNT,
+            created_at: record.CREATED_AT
         }));
 
         return res.json({
             success: true,
             records: recordsList
         });
+    });
+});
+
+//檢查讀者是否購買過該章節
+app.get('/api/checkTransactionData', (req, res) => {
+    const { userId, chapterId } = req.query;
+
+    if (!userId || !chapterId) {
+        return res.status(400).json({ success: false, error: "缺少參數" });
+    }
+
+    const sql = `SELECT id FROM TRANSACTION WHERE buyer_id = ? AND chapter_id = ?;`;
+
+    db.query(sql, [userId, chapterId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, error: "伺服器錯誤：" + err.message });
+        }
+        return res.json({ success: true, purchased: results.length > 0 });
     });
 });
 
@@ -988,14 +1175,14 @@ app.get('/api/getWriterLevel', (req, res) => {
         SELECT *
         FROM WRITER_LEVEL_RULE;
     `;
-    
+
     db.query(sql, (dbErr, results) => {
         if (dbErr) {
             return res.status(500).json({ success: false, error: "作家等級資料存取失敗：" + dbErr.message });
         }
-        
-        if (!results || results.length === 0) { 
-            return res.json({ success: true, rule: [] }); 
+
+        if (!results || results.length === 0) {
+            return res.json({ success: true, rule: [] });
         }
 
         const rules = results.map(rule => ({
@@ -1016,19 +1203,47 @@ app.get('/api/getReaderLevel', (req, res) => {
         SELECT *
         FROM READER_LEVEL_RULE;
     `;
-    
+
     db.query(sql, (dbErr, results) => {
         if (dbErr) {
             return res.status(500).json({ success: false, error: "讀者等級資料存取失敗：" + dbErr.message });
         }
-        
-        if (!results || results.length === 0) { 
-            return res.json({ success: true, rule: [] }); 
+
+        if (!results || results.length === 0) {
+            return res.json({ success: true, rule: [] });
         }
 
         const rules = results.map(rule => ({
             name: rule.name || rule.NAME,
             min_exp: rule.min_exp || rule.MIN_EXP
+        }));
+
+        return res.json({
+            success: true,
+            rule: rules
+        });
+    });
+});
+
+//存取點數價格資料
+app.get('/api/getPoint', (req, res) => {
+    const sql = `
+        SELECT *
+        FROM point;
+    `;
+
+    db.query(sql, (dbErr, results) => {
+        if (dbErr) {
+            return res.status(500).json({ success: false, error: "點數資料存取失敗：" + dbErr.message });
+        }
+
+        if (!results || results.length === 0) {
+            return res.json({ success: true, rule: [] });
+        }
+
+        const rules = results.map(rule => ({
+            amount: rule.amount,
+            price: rule.price
         }));
 
         return res.json({

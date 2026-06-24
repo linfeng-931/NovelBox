@@ -23,7 +23,6 @@ export default function BookEdit({ data, tags, setRefreshTrigger, setPage }) {
             setProgress(data.progress);
         }
     }, [data]);
-
     const handleTagChange = (e, currentTag) => {
         const isChecked = e.target.checked;
 

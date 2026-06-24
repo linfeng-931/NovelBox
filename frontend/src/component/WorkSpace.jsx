@@ -61,7 +61,7 @@ export default function WorkSpace({ setPage2, data, tags, setChapterTitle, setFr
                                     gap: 15
                                 }}
                                 >
-                                    <button onClick={()=>setPage(3)} className='fontBtn' style={{ display: 'flex', gap: 10, alignItems: 'center' }}><Settings size={18} />作品設定</button>
+                                    <button onClick={() => setPage(3)} className='fontBtn' style={{ display: 'flex', gap: 10, alignItems: 'center' }}><Settings size={18} />作品設定</button>
                                     <button className='fontBtn' style={{ display: 'flex', gap: 10, alignItems: 'center' }}><Trash2 size={18} />刪除作品</button>
                                     <button className='fontBtn1' style={{ display: 'flex', gap: 10, alignItems: 'center' }}><BookOpenCheck size={18} />發佈作品</button>
                                 </div>
@@ -71,11 +71,23 @@ export default function WorkSpace({ setPage2, data, tags, setChapterTitle, setFr
 
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
                         <p className='title2' style={{ width: '100%' }}>小說章節</p>
-                        {chapters.length > 0 ? chapters.map((chapter, index) => {
-                            return <WorkCard2 key={chapter.chapter_id} data={chapter} action={() => handleGoToEdit(chapter)} />
-                        }) :
-                            <p className='tag1' style={{ width: '100%', textAlign: 'center' }}>還沒有章節喔！</p>
-                        }
+                        <div
+                            style={{
+                                width: '100%',
+                                maxHeight: '320px',
+                                overflowY: 'auto',
+                                paddingRight: '8px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 10
+                            }}
+                        >
+                            {chapters.length > 0 ? chapters.map((chapter, index) => {
+                                return <WorkCard2 key={chapter.chapter_id} data={chapter} action={() => handleGoToEdit(chapter)} />
+                            }) :
+                                <p className='tag1' style={{ width: '100%', textAlign: 'center' }}>還沒有章節喔！</p>
+                            }
+                        </div>
                         <button
                             className='normalBtn'
                             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: 400 }}
@@ -85,7 +97,7 @@ export default function WorkSpace({ setPage2, data, tags, setChapterTitle, setFr
                 </div>
             }
             {page === 2 && <ChapterEdit data={currentChapter} setRefreshTrigger={setRefreshTrigger} setPage2={setPage} />}
-            {page === 3 && <BookEdit tags={tags} data={data} setRefreshTrigger={setRefreshTrigger} setPage={setPage}/>}
+            {page === 3 && <BookEdit tags={tags} data={data} setRefreshTrigger={setRefreshTrigger} setPage={setPage} />}
         </>
     )
 }

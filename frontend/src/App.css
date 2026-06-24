@@ -85,6 +85,10 @@ textarea{
   color: var(--lightBasic);
   opacity: 0.5;
 }
+.tag3{
+  font-size: 14px;
+  color: var(--pink1);
+}
 .errorMessage{
   font-size: 14px;
   color: red;

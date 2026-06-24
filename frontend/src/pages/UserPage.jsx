@@ -1,8 +1,14 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom';
 import '../App.css'
-import Header from '@/component/Header';
 import { handleLogout, handleBecomeWriter } from '@/utils/linkDB';
 import { useNavigate } from "react-router-dom";
+import { LogOut, CircleUser, CircleDollarSign, BookMarked, BookOpen, IdCardLanyard, PencilLine } from 'lucide-react';
+
+import Header from '@/component/Header';
+import UserSetting from '@/component/UserSetting';
+import Accounting from '@/component/Accounting';
+import NovelRecord from '@/component/NovelRecord';
 
 export default function UserPage({ setUser, user }) {
     const navigate = useNavigate();
@@ -14,29 +20,93 @@ export default function UserPage({ setUser, user }) {
     const [agreed, setAgreed] = useState(false);
 
     return (
-        <div>
-            <Header page={4} user={user} />
-            <div style={{ display: "flex", flexDirection: "row" }}>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                    <button className="fontBtn" onClick={(e) => setStatus(1)}>個人設定</button>
-                    <button className="fontBtn" onClick={(e) => setStatus(2)}>帳務與訂閱</button>
-                    <button className="fontBtn" onClick={(e) => setStatus(3)}>我的收藏</button>
-                    <button className="fontBtn" onClick={(e) => setStatus(4)}>閱覽紀錄</button>
-                    <button className="fontBtn" onClick={(e) => setWriterPage(true)}>成為作家</button>
-                    <button className="normalBtn" onClick={Logout}>登出</button>
+        <>
+        <Header page={4} user={user} />
+        <div style={{display: "flex", width:'100%', justifyContent:'center'}}>
+            
+            <div style={{ display: "flex", width:'100%', maxWidth: 1100, justifyContent:'space-between'}}>
+                {/* left section */}
+                <div style={{
+                    marginTop: 20,
+                    width: '16rem',
+                    boxShadow: '0px 0px 5px 0px rgba(0, 0, 0, 0.1)',
+                    padding: 30,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: 20,
+                    height: '85vh'
+                }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 20,
+                        }}
+                    >
+                        {status === 1 ?
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
+                                <CircleUser size={18} />個人設定
+                            </div>
+                            :
+                            <button onClick={() => setStatus(1)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><CircleUser size={18} />個人設定</button>
+                        }
+                        {status === 2 ?
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
+                                <CircleDollarSign size={18} />帳務與訂閱
+                            </div>
+                            :
+                            <button onClick={() => setStatus(2)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><CircleDollarSign size={18} />帳務</button>
+                        }
+                        <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
+                        {status === 3 ?
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
+                                <BookMarked size={18} />我的收藏
+                            </div>
+                            :
+                            <button onClick={() => setStatus(3)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><BookMarked size={18} />我的收藏</button>
+                        }
+                        {status === 4 ?
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#ff7474ff', display: 'flex', alignItems: 'center', gap: 20 }}>
+                                <BookOpen size={18} />閱覽紀錄
+                            </div>
+                            :
+                            <button onClick={() => setStatus(4)} className='fontBtn' style={{ display: 'flex', alignItems: 'center', gap: 20 }}><BookOpen size={18} />閱覽紀錄</button>
+                        }
+                        <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
+                        {user?.role === 'writer'?
+                            <Link to="/creator" className="fontBtn" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 20 }}> <PencilLine size={18} />創作中心</Link>
+                            :
+                            <button className="fontBtn" onClick={(e) => setWriterPage(true)} style={{ display: 'flex', alignItems: 'center', gap: 20 }}><IdCardLanyard size={18} />成為作家</button>
+                        }
+                        
+                        <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 20,
+                        }}
+                    >
+                        <hr style={{ opacity: 0.3, marginTop: 10, marginBottom: 10 }} />
+                        <button className="fontBtn" onClick={Logout} style={{ display: 'flex', alignItems: 'center', gap: 20 }}><LogOut size={18} />登出</button>
+                    </div>
                 </div>
-                <div>
+
+                {/* right section */}
+                <div style={{width:'100%', marginTop:30}}>
                     {status === 1 &&
-                        <div></div>
+                        <UserSetting user={user} setUser={setUser}/>
                     }
                     {status === 2 &&
-                        <div></div>
+                        <Accounting user={user} setUser={setUser}/>
                     }
                     {status === 3 &&
                         <div></div>
                     }
                     {status === 4 &&
-                        <div></div>
+                        <NovelRecord user={user}/>
                     }
                 </div>
             </div>
@@ -162,5 +232,6 @@ export default function UserPage({ setUser, user }) {
                 </div>
             }
         </div>
+        </>
     )
 }

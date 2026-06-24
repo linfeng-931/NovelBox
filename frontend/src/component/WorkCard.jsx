@@ -1,7 +1,7 @@
 import '../App.css'
 import { Eye } from 'lucide-react';
 
-export default function WorkCard({data, action}) {
+export default function WorkCard({ data, action}) {
     return (
         <div
             style={{
